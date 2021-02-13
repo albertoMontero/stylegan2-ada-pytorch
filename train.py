@@ -46,6 +46,7 @@ def setup_training_loop_kwargs(
     cfg        = None, # Base config: 'auto' (default), 'stylegan2', 'paper256', 'paper512', 'paper1024', 'cifar'
     gamma      = None, # Override R1 gamma: <float>
     n_maps     = None,
+    lrate      = None,
     kimg       = None, # Override training duration: <int>
     batch      = None, # Override batch size: <int>
 
@@ -174,6 +175,14 @@ def setup_training_loop_kwargs(
         spec.gamma = 0.0002 * (res ** 2) / spec.mb # heuristic formula
         spec.ema = spec.mb * 10 / 32
 
+    if n_maps:
+        assert 1 <= n_maps <= 8
+        spec.map = n_maps
+
+    if lrate:
+        assert isinstance(lrate, float)
+        spec.lrate = lrate
+
     args.G_kwargs = dnnlib.EasyDict(class_name='training.networks.Generator', z_dim=512, w_dim=512, mapping_kwargs=dnnlib.EasyDict(), synthesis_kwargs=dnnlib.EasyDict())
     args.D_kwargs = dnnlib.EasyDict(class_name='training.networks.Discriminator', block_kwargs=dnnlib.EasyDict(), mapping_kwargs=dnnlib.EasyDict(), epilogue_kwargs=dnnlib.EasyDict())
     args.G_kwargs.synthesis_kwargs.channel_base = args.D_kwargs.channel_base = int(spec.fmaps * 32768)
@@ -219,10 +228,6 @@ def setup_training_loop_kwargs(
         desc += f'-batch{batch}'
         args.batch_size = batch
         args.batch_gpu = batch // gpus
-
-    if n_maps:
-        assert 1 <= n_maps <= 8
-        args.G_kwargs.mapping_kwargs.num_layers = n_maps
 
         # ---------------------------------------------------
     # Discriminator augmentation: aug, p, target, augpipe
@@ -420,7 +425,8 @@ class CommaSeparatedList(click.ParamType):
 # Base config.
 @click.option('--cfg', help='Base config [default: auto]', type=click.Choice(['auto', 'stylegan2', 'paper256', 'paper512', 'paper1024', 'cifar']))
 @click.option('--gamma', help='Override R1 gamma', type=float)
-@click.option('--n_maps', help='Override config map', type=int, metavar='INT')
+@click.option('--n_maps', help='Override mapping network depth', type=int, metavar='INT')
+@click.option('--lrate', help='Override learning rate', type=float, metavar='FLOAT')
 @click.option('--kimg', help='Override training duration', type=int, metavar='INT')
 @click.option('--batch', help='Override batch size', type=int, metavar='INT')
 
