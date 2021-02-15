@@ -254,7 +254,7 @@ def setup_training_loop_kwargs(
 
     if p is not None:
         assert isinstance(p, float)
-        if aug != 'fixed':
+        if aug != 'fixed' and resume != 'latest':
             raise UserError('--p can only be specified with --aug=fixed')
         if not 0 <= p <= 1:
             raise UserError('--p must be between 0 and 1')

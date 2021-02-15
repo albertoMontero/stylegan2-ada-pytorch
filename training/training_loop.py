@@ -16,6 +16,7 @@ import PIL.Image
 import numpy as np
 import torch
 import dnnlib
+import training.parser
 from torch_utils import misc
 from torch_utils import training_stats
 from torch_utils.ops import conv2d_gradfix
@@ -151,6 +152,14 @@ def training_loop(
     D = dnnlib.util.construct_class_by_name(**D_kwargs, **common_kwargs).train().requires_grad_(False).to(device) # subclass of torch.nn.Module
     G_ema = copy.deepcopy(G).eval()
 
+    latest_log = None
+
+    if resume_pkl == "latest":
+        resume_pkl = training.parser.extract_latest(run_dir)
+        latest_log = training.parser.extract_log(run_dir)
+        augment_p = latest_log["augment"]
+        print("Resuming from latest with arguments:\n", latest_log)
+
     # Resume from existing pickle.
     if (resume_pkl is not None) and (rank == 0):
         print(f'Resuming from "{resume_pkl}"')
@@ -247,6 +256,11 @@ def training_loop(
         print()
     cur_nimg = 0
     cur_tick = 0
+    if latest_log:
+        cur_nimg = latest_log["kimg"] * 1000
+        cur_tick = latest_log["tick"]
+        print(f"resuming cur_nimg to {cur_nimg}")
+        print(f"resuming cur_tick to {cur_tick}")
     tick_start_nimg = cur_nimg
     tick_start_time = time.time()
     maintenance_time = tick_start_time - start_time
