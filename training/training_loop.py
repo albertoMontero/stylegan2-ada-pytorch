@@ -257,9 +257,9 @@ def training_loop(
     cur_nimg = 0
     cur_tick = 0
     if latest_log:
-        cur_nimg = latest_log["kimg"] * 1000
-        cur_tick = latest_log["tick"]
-        print(f"resuming cur_nimg to {cur_nimg}")
+        cur_nimg = int(latest_log["kimg"] * 1000)
+        cur_tick = latest_log["tick"] + 1
+        print(f"resuming cur_nimg to {cur_nimg/1000}k")
         print(f"resuming cur_tick to {cur_tick}")
     tick_start_nimg = cur_nimg
     tick_start_time = time.time()

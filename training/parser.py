@@ -18,7 +18,8 @@ def extract_latest(run_dir, prefix="0"):
 
 
 def extract_log(run_dir):
-    with open(pathlib.Path(run_dir) / "log.txt") as f:
+    previous = sorted(glob.glob(os.path.join(pathlib.Path(run_dir).parent, f'{0}*')))[-2]
+    with open(pathlib.Path(previous) / "log.txt") as f:
         lines = [line.strip() for line in f.readlines() if line.startswith("tick")]
     last = lines[-1]
 
