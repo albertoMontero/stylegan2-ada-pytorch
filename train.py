@@ -154,6 +154,8 @@ def setup_training_loop_kwargs(
     desc += f'-{cfg}'
 
     cfg_specs = {
+        'cfg1':      dict(ref_gpus=1, kimg=25000, mb=16, mbstd=4, fmaps=0.5, lrate=0.001, gamma=1, ema=5, ramp=None, map=8),
+        'cfg2':      dict(ref_gpus=1, kimg=25000, mb=32, mbstd=8, fmaps=0.5, lrate=0.002, gamma=0.5, ema=10, ramp=None, map=8),
         'auto':      dict(ref_gpus=-1, kimg=25000,  mb=-1, mbstd=-1, fmaps=-1,  lrate=-1,     gamma=-1,   ema=-1,  ramp=0.05, map=2), # Populated dynamically based on resolution and GPU count.
         'stylegan2': dict(ref_gpus=8,  kimg=25000,  mb=32, mbstd=4,  fmaps=1,   lrate=0.002,  gamma=10,   ema=10,  ramp=None, map=8), # Uses mixed-precision, unlike the original StyleGAN2.
         'paper256':  dict(ref_gpus=8,  kimg=25000,  mb=64, mbstd=8,  fmaps=0.5, lrate=0.0025, gamma=1,    ema=20,  ramp=None, map=8),
@@ -182,6 +184,9 @@ def setup_training_loop_kwargs(
     if lrate:
         assert isinstance(lrate, float)
         spec.lrate = lrate
+
+    print("using config ", cfg)
+    print(spec)
 
     args.G_kwargs = dnnlib.EasyDict(class_name='training.networks.Generator', z_dim=512, w_dim=512, mapping_kwargs=dnnlib.EasyDict(), synthesis_kwargs=dnnlib.EasyDict())
     args.D_kwargs = dnnlib.EasyDict(class_name='training.networks.Discriminator', block_kwargs=dnnlib.EasyDict(), mapping_kwargs=dnnlib.EasyDict(), epilogue_kwargs=dnnlib.EasyDict())
@@ -213,6 +218,7 @@ def setup_training_loop_kwargs(
             raise UserError('--gamma must be non-negative')
         desc += f'-gamma{gamma:g}'
         args.loss_kwargs.r1_gamma = gamma
+        print("overriding gamma to ", gamma)
 
     if kimg is not None:
         assert isinstance(kimg, int)
@@ -228,6 +234,7 @@ def setup_training_loop_kwargs(
         desc += f'-batch{batch}'
         args.batch_size = batch
         args.batch_gpu = batch // gpus
+        print("overriding batch to ", batch)
 
         # ---------------------------------------------------
     # Discriminator augmentation: aug, p, target, augpipe
@@ -320,9 +327,12 @@ def setup_training_loop_kwargs(
         desc += '-resumecustom'
         args.resume_pkl = resume # custom path or url
 
-    if resume != 'noresume':
+    if resume != 'noresume' and resume != 'latest':
         args.ada_kimg = 100 # make ADA react faster at the beginning
         args.ema_rampup = None # disable EMA rampup
+
+    if resume == 'latest':
+        args.ema_rampup = None
 
     if freezed is not None:
         assert isinstance(freezed, int)
@@ -423,7 +433,7 @@ class CommaSeparatedList(click.ParamType):
 @click.option('--mirror', help='Enable dataset x-flips [default: false]', type=bool, metavar='BOOL')
 
 # Base config.
-@click.option('--cfg', help='Base config [default: auto]', type=click.Choice(['auto', 'stylegan2', 'paper256', 'paper512', 'paper1024', 'cifar']))
+@click.option('--cfg', help='Base config [default: auto]', type=click.Choice(['cfg1', 'cfg2', 'auto', 'stylegan2', 'paper256', 'paper512', 'paper1024', 'cifar']))
 @click.option('--gamma', help='Override R1 gamma', type=float)
 @click.option('--n_maps', help='Override mapping network depth', type=int, metavar='INT')
 @click.option('--lrate', help='Override learning rate', type=float, metavar='FLOAT')
