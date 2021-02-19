@@ -154,8 +154,8 @@ def setup_training_loop_kwargs(
     desc += f'-{cfg}'
 
     cfg_specs = {
-        'cfg1':      dict(ref_gpus=1, kimg=25000, mb=16, mbstd=4, fmaps=0.5, lrate=0.001, gamma=1, ema=5, ramp=None, map=8),
-        'cfg2':      dict(ref_gpus=1, kimg=25000, mb=32, mbstd=8, fmaps=0.5, lrate=0.002, gamma=0.5, ema=10, ramp=None, map=8),
+        'cfg1':      dict(ref_gpus=1, kimg=25000, mb=16, mbstd=4, fmaps=0.5, lrate=0.001, gamma=0.8, ema=5, ramp=None, map=8),
+        'cfg2':      dict(ref_gpus=1, kimg=25000, mb=32, mbstd=4, fmaps=0.5, lrate=0.002, gamma=0.5, ema=10, ramp=None, map=8),
         'auto':      dict(ref_gpus=-1, kimg=25000,  mb=-1, mbstd=-1, fmaps=-1,  lrate=-1,     gamma=-1,   ema=-1,  ramp=0.05, map=2), # Populated dynamically based on resolution and GPU count.
         'stylegan2': dict(ref_gpus=8,  kimg=25000,  mb=32, mbstd=4,  fmaps=1,   lrate=0.002,  gamma=10,   ema=10,  ramp=None, map=8), # Uses mixed-precision, unlike the original StyleGAN2.
         'paper256':  dict(ref_gpus=8,  kimg=25000,  mb=64, mbstd=8,  fmaps=0.5, lrate=0.0025, gamma=1,    ema=20,  ramp=None, map=8),
